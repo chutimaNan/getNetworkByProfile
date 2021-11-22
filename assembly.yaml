@@ -1,0 +1,76 @@
+name: ubuntu
+formatVersion: 1
+inputs:
+  select-network:
+    type: string
+    title: Select Network
+    default: ''
+  select-network2:
+    type: string
+    title: Select Network
+    default: ''
+  select-network3:
+    type: string
+    title: Select Network
+    default: ''
+  needNIC2:
+    type: boolean
+    title: Add 2nd NIC?
+    default: false
+  needNIC3:
+    type: boolean
+    title: Add 3rd NIC?
+    default: false
+resources:
+  ubuntu-VM-01:
+    type: Cloud.vSphere.Machine
+    metadata:
+      layoutPosition:
+        - 0
+        - 0
+    properties:
+      imageRef: baseu18
+      cpuCount: 2
+      totalMemoryMB: 2048
+      networks: '${map_by(resource.Cloud_vSphere_Network_1[*].id + resource.Cloud_vSphere_Network_2[*].id + resource.Cloud_vSphere_Network_3[*].id, id => {"network":id, "assignment":"static", "deviceIndex":id.deviceIndex})}'
+      constraints:
+        - tag: 'project:app-development'
+  Cloud_vSphere_Network_1:
+    type: Cloud.vSphere.Network
+    metadata:
+      layoutPosition:
+        - 1
+        - 0
+    count: 1
+    properties:
+      networkType: existing
+      deviceIndex: 0
+      constraints:
+        - tag: '${input.select-network}'
+        - tag: 'project:app-development'
+  Cloud_vSphere_Network_2:
+    type: Cloud.vSphere.Network
+    metadata:
+      layoutPosition:
+        - 2
+        - 0
+    properties:
+      networkType: existing
+      count: '${input.needNIC2 == true ? 1 : 0}'
+      deviceIndex: 1
+      constraints:
+        - tag: '${input.select-network2}'
+        - tag: 'project:app-development'
+  Cloud_vSphere_Network_3:
+    type: Cloud.vSphere.Network
+    metadata:
+      layoutPosition:
+        - 3
+        - 0
+    properties:
+      networkType: existing
+      count: '${input.needNIC3 == true ? 1 : 0}'
+      deviceIndex: 2
+      constraints:
+        - tag: '${input.select-network3}'
+        - tag: 'project:app-development'
